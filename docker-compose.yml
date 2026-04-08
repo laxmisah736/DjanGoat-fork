@@ -2,10 +2,32 @@ version: "3.9"
 
 services:
   web:
-    build: .
-    ports:
-      - "8000:8000"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: djangoat-deployment-web
+    command: gunicorn DjanGoat.wsgi:application --bind 0.0.0.0:8000
     volumes:
       - .:/app
+    ports:
+      - "8000:8000"
     environment:
       - DEBUG=1
+      - DJANGO_SETTINGS_MODULE=DjanGoat.settings
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15
+    container_name: djangoat-deployment-db
+    environment:
+      POSTGRES_DB: djangodb
+      POSTGRES_USER: django
+      POSTGRES_PASSWORD: django123
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
