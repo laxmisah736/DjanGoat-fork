@@ -1,34 +1,13 @@
-# Dockerfile
-FROM python:3.11-slim
+# Install git first
+RUN apt-get update && apt-get install -y git
 
-# Set environment variables
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+# Clone django-fullcalendar manually into /app/src
+RUN git clone https://github.com/rodrigoamaral/django-fullcalendar.git /app/src/django-fullcalendar
 
-# Set working directory
-WORKDIR /app
-
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    git \
-    build-essential \
-    libpq-dev \
-    && rm -rf /var/lib/apt/lists/*
-
-# Upgrade pip
+# Then install local package
 RUN pip install --upgrade pip
+RUN pip install /app/src/django-fullcalendar
 
-# Copy requirements
+# Install the rest of your requirements without django-fullcalendar
 COPY requirements.txt .
-
-# Install Python dependencies (with git timeout)
-RUN pip install --default-timeout=100 -r requirements.txt
-
-# Copy project code
-COPY . .
-
-# Expose Django default port
-EXPOSE 8000
-
-# Run the app
-CMD ["gunicorn", "DjanGoat.wsgi:application", "--bind", "0.0.0.0:8000"]
+RUN pip install --default-timeout=100 -r requirements.txt --no-deps
