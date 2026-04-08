@@ -4,6 +4,6 @@ FROM python:3.11-slim
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install git and build tools
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends git build-essential && \
-    rm -rf /var/lib/apt/lists/*
+apt-get update && \
+apt-get install -y --no-install-recommends git build-essential && \
+rm -rf /var/lib/apt/lists/*
