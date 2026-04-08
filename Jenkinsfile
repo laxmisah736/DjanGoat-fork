@@ -2,9 +2,7 @@ pipeline {
     agent any
 
     environment {
-        // Name of your Docker image
         IMAGE_NAME = "djangoat-deployment-web"
-        // Compose file location (relative to workspace)
         COMPOSE_FILE = "docker-compose.yml"
     }
 
@@ -22,7 +20,6 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Build image using docker-compose
                     sh "docker compose -f ${COMPOSE_FILE} build --pull"
                 }
             }
@@ -31,9 +28,7 @@ pipeline {
         stage('Deploy Containers') {
             steps {
                 script {
-                    // Stop and remove any existing containers for this project
                     sh "docker compose -f ${COMPOSE_FILE} down --remove-orphans"
-                    // Start containers in detached mode
                     sh "docker compose -f ${COMPOSE_FILE} up -d"
                 }
             }
@@ -42,7 +37,6 @@ pipeline {
         stage('Post Deployment') {
             steps {
                 script {
-                    // Optional: show running containers for debugging
                     sh "docker ps --filter name=${IMAGE_NAME}"
                 }
             }
