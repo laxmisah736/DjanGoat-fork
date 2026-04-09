@@ -1,13 +1,32 @@
-# Install git first
-RUN apt-get update && apt-get install -y git
+# Base Image
+FROM python:3.10-slim
 
-# Clone django-fullcalendar manually into /app/src
-RUN git clone https://github.com/rodrigoamaral/django-fullcalendar.git /app/src/django-fullcalendar
+# Set environment
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
-# Then install local package
-RUN pip install --upgrade pip
-RUN pip install /app/src/django-fullcalendar
+# Work directory
+WORKDIR /app
 
-# Install the rest of your requirements without django-fullcalendar
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    libpq-dev \
+    netcat \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements
 COPY requirements.txt .
-RUN pip install --default-timeout=100 -r requirements.txt --no-deps
+
+# Install dependencies
+RUN pip install --upgrade pip
+RUN pip install -r requirements.txt
+
+# Copy project
+COPY . .
+
+# Expose port
+EXPOSE 8000
+
+# Run migrations + server
+CMD ["sh", "-c", "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"]
