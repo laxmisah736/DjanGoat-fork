@@ -2,57 +2,39 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = "djangoat-deployment-web"
-        COMPOSE_FILE = "docker-compose.yml"
+        IMAGE_NAME = "djangogoat-app"
+        CONTAINER_NAME = "djangogoat-container"
     }
 
     stages {
-        stage('Checkout') {
+
+        stage('Clone Repo') {
             steps {
-                git(
-                    url: 'https://github.com/laxmisah736/DjanGoat-fork.git',
-                    branch: 'master',
-                    credentialsId: 'ubuntu'
-                )
+                git 'https://github.com/laxmisah736/DjanGoat-fork.git'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                script {
-                    sh "docker compose -f ${COMPOSE_FILE} build --pull"
-                }
+                sh 'docker build -t $IMAGE_NAME .'
             }
         }
 
-        stage('Deploy Containers') {
+        stage('Stop Old Container') {
             steps {
-                script {
-                    sh "docker compose -f ${COMPOSE_FILE} down --remove-orphans"
-                    sh "docker compose -f ${COMPOSE_FILE} up -d"
-                }
+                sh '''
+                docker stop $CONTAINER_NAME || true
+                docker rm $CONTAINER_NAME || true
+                '''
             }
         }
 
-        stage('Post Deployment') {
+        stage('Run Container') {
             steps {
-                script {
-                    sh "docker ps --filter name=${IMAGE_NAME}"
-                }
+                sh '''
+                docker run -d -p 8000:8000 --name $CONTAINER_NAME $IMAGE_NAME
+                '''
             }
-        }
-    }
-
-    post {
-        always {
-            echo "Cleaning up unused Docker resources..."
-            sh "docker system prune -f || true"
-        }
-        success {
-            echo "Deployment successful!"
-        }
-        failure {
-            echo "Deployment failed. Check logs for details."
         }
     }
 }
